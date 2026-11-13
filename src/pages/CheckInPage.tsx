@@ -13,7 +13,7 @@ type PublicSession = {
 type SavedAttendance = {
   full_name: string;
   email: string;
-  attendee_type: 'teacher' | 'student';
+  attendee_type: 'teacher' | 'online_staff' | 'admin_staff';
   arrived_at: string;
   departed_at: string | null;
   action: 'check_in' | 'check_out';
@@ -27,7 +27,7 @@ const CheckInPage: React.FC = () => {
   const [session, setSession] = useState<PublicSession | null>(null);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
-  const [attendeeType, setAttendeeType] = useState<'teacher' | 'student'>('teacher');
+  const [attendeeType, setAttendeeType] = useState<SavedAttendance['attendee_type']>('teacher');
   const [savedAttendance, setSavedAttendance] = useState<SavedAttendance | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -118,6 +118,11 @@ const CheckInPage: React.FC = () => {
     if (mode === 'online') return 'Online tutoring';
     return 'Staffs attendance';
   };
+  const attendeeLabel = (type: SavedAttendance['attendee_type']) => {
+    if (type === 'online_staff') return 'Online Staff';
+    if (type === 'admin_staff') return 'Admin Staff';
+    return 'Teacher';
+  };
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-brand-50 via-white to-emerald-50 px-5 py-10">
@@ -150,7 +155,7 @@ const CheckInPage: React.FC = () => {
                   <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{savedAttendance.action === 'check_in' ? 'Arrival time' : 'Class attendance'}</p>
                   <p className="mt-1 text-lg font-bold text-slate-900">{formatAttendanceTime(savedAttendance.arrived_at)}</p>
                   {savedAttendance.departed_at && <p className="mt-1 text-sm text-slate-600">Departure · {formatAttendanceTime(savedAttendance.departed_at)}</p>}
-                  <p className="mt-2 text-sm text-slate-500">{savedAttendance.attendee_type === 'teacher' ? 'Teacher' : 'Student'} · {deliveryLabel(savedAttendance.delivery_mode)}</p>
+                  <p className="mt-2 text-sm text-slate-500">{attendeeLabel(savedAttendance.attendee_type)} · {deliveryLabel(savedAttendance.delivery_mode)}</p>
                 </div>
                 {savedAttendance.action === 'check_in' && (
                   <div className="mt-6 rounded-2xl border border-brand-100 bg-brand-50/70 p-4">
@@ -184,9 +189,10 @@ const CheckInPage: React.FC = () => {
                 <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
                   <label className="grid gap-1.5 text-sm font-semibold text-slate-700">
                     I am a
-                    <select className="rounded-xl border border-slate-200 bg-white px-4 py-3 font-normal outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100" value={attendeeType} onChange={(event) => setAttendeeType(event.target.value as 'teacher' | 'student')}>
+                    <select className="rounded-xl border border-slate-200 bg-white px-4 py-3 font-normal outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100" value={attendeeType} onChange={(event) => setAttendeeType(event.target.value as SavedAttendance['attendee_type'])}>
                       <option value="teacher">Teacher</option>
-                      <option value="student">Student</option>
+                      <option value="online_staff">Online Staff</option>
+                      <option value="admin_staff">Admin Staff</option>
                     </select>
                   </label>
                   <label className="grid gap-1.5 text-sm font-semibold text-slate-700">

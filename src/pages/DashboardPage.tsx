@@ -20,7 +20,7 @@ type Arrival = {
   session_id: string;
   full_name: string;
   email: string;
-  attendee_type: 'teacher' | 'student';
+  attendee_type: 'teacher' | 'online_staff' | 'admin_staff';
   arrived_at: string;
   departed_at: string | null;
 };
@@ -51,7 +51,8 @@ const DashboardPage: React.FC = () => {
   const [sessionPage, setSessionPage] = useState(1);
   const [sessionPageSize, setSessionPageSize] = useState(10);
   const [teacherArrivalPage, setTeacherArrivalPage] = useState(1);
-  const [studentArrivalPage, setStudentArrivalPage] = useState(1);
+  const [onlineStaffArrivalPage, setOnlineStaffArrivalPage] = useState(1);
+  const [adminStaffArrivalPage, setAdminStaffArrivalPage] = useState(1);
   const [arrivalPageSize, setArrivalPageSize] = useState(10);
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -235,7 +236,8 @@ const DashboardPage: React.FC = () => {
     ].some((value) => value.toLocaleLowerCase().includes(normalizedSearch));
   });
   const teacherArrivals = matchingArrivals.filter((arrival) => arrival.attendee_type === 'teacher');
-  const studentArrivals = matchingArrivals.filter((arrival) => arrival.attendee_type === 'student');
+  const onlineStaffArrivals = matchingArrivals.filter((arrival) => arrival.attendee_type === 'online_staff');
+  const adminStaffArrivals = matchingArrivals.filter((arrival) => arrival.attendee_type === 'admin_staff');
 
   const renderArrivalTable = (
     label: string,
@@ -329,7 +331,8 @@ const DashboardPage: React.FC = () => {
           onPageSizeChange={(pageSize) => {
             setArrivalPageSize(pageSize);
             setTeacherArrivalPage(1);
-            setStudentArrivalPage(1);
+            setOnlineStaffArrivalPage(1);
+            setAdminStaffArrivalPage(1);
           }}
         />
       </>
@@ -364,7 +367,7 @@ const DashboardPage: React.FC = () => {
             <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-4xl">Attendance dashboard</h1>
             <p className="mt-2 text-slate-500">Manage tutoring sessions and see who is in class.</p>
           </div>
-          <div className="grid w-full grid-cols-3 gap-2 sm:w-auto sm:gap-3">
+          <div className="grid w-full grid-cols-2 gap-2 sm:w-auto sm:grid-cols-4 sm:gap-3">
             <div className="min-w-0 rounded-2xl border border-slate-200 bg-white px-3 py-3 shadow-sm sm:px-5 sm:py-4">
               <p className="truncate text-[10px] font-semibold uppercase tracking-wide text-slate-500 sm:text-xs">Sessions</p>
               <p className="mt-1 text-xl font-bold text-slate-900 sm:text-2xl">{sessions.length}</p>
@@ -374,8 +377,12 @@ const DashboardPage: React.FC = () => {
               <p className="mt-1 text-xl font-bold text-brand-700 sm:text-2xl">{arrivals.filter((arrival) => arrival.attendee_type === 'teacher').length}</p>
             </div>
             <div className="min-w-0 rounded-2xl border border-slate-200 bg-white px-3 py-3 shadow-sm sm:px-5 sm:py-4">
-              <p className="truncate text-[10px] font-semibold uppercase tracking-wide text-slate-500 sm:text-xs">Students</p>
-              <p className="mt-1 text-xl font-bold text-brand-700 sm:text-2xl">{arrivals.filter((arrival) => arrival.attendee_type === 'student').length}</p>
+              <p className="truncate text-[10px] font-semibold uppercase tracking-wide text-slate-500 sm:text-xs">Online staff</p>
+              <p className="mt-1 text-xl font-bold text-brand-700 sm:text-2xl">{arrivals.filter((arrival) => arrival.attendee_type === 'online_staff').length}</p>
+            </div>
+            <div className="min-w-0 rounded-2xl border border-slate-200 bg-white px-3 py-3 shadow-sm sm:px-5 sm:py-4">
+              <p className="truncate text-[10px] font-semibold uppercase tracking-wide text-slate-500 sm:text-xs">Admin staff</p>
+              <p className="mt-1 text-xl font-bold text-brand-700 sm:text-2xl">{arrivals.filter((arrival) => arrival.attendee_type === 'admin_staff').length}</p>
             </div>
           </div>
         </section>
@@ -525,7 +532,7 @@ const DashboardPage: React.FC = () => {
             <div className="flex flex-wrap items-center justify-between gap-4 px-5 py-5 sm:px-6">
               <div>
                 <h2 id="arrivals-title" className="text-xl font-bold text-slate-900">Attendance arrivals</h2>
-                <p className="mt-1 text-sm text-slate-500">Teacher and student records are listed separately.</p>
+                <p className="mt-1 text-sm text-slate-500">Teacher, online staff, and admin staff records are listed separately.</p>
               </div>
               <button className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50" type="button" onClick={() => void loadDashboard()}>Refresh</button>
             </div>
@@ -536,7 +543,8 @@ const DashboardPage: React.FC = () => {
                 <input className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100" type="search" placeholder="Search by name, email, or date..." value={arrivalSearch} onChange={(event) => {
                   setArrivalSearch(event.target.value);
                   setTeacherArrivalPage(1);
-                  setStudentArrivalPage(1);
+                  setOnlineStaffArrivalPage(1);
+                  setAdminStaffArrivalPage(1);
                 }} />
               </label>
             </div>
@@ -565,23 +573,42 @@ const DashboardPage: React.FC = () => {
                   : renderArrivalTable('teachers', teacherArrivals, teacherArrivalPage, setTeacherArrivalPage)}
               </section>
 
-              <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm" aria-labelledby="student-arrivals-title">
+              <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm" aria-labelledby="online-staff-arrivals-title">
                 <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 px-5 py-4 sm:px-6">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-50 text-sm font-bold text-amber-700" aria-hidden="true">S</span>
-                  <h3 id="student-arrivals-title" className="font-bold text-slate-800">Student arrivals</h3>
-                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{studentArrivals.length}</span>
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sky-50 text-sm font-bold text-sky-700" aria-hidden="true">O</span>
+                  <h3 id="online-staff-arrivals-title" className="font-bold text-slate-800">Online staff arrivals</h3>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{onlineStaffArrivals.length}</span>
                   <button
                     className="ml-auto rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
                     type="button"
-                    onClick={() => setPrintArrivals({ label: 'Student arrivals', rows: studentArrivals })}
-                    disabled={studentArrivals.length === 0}
+                    onClick={() => setPrintArrivals({ label: 'Online staff arrivals', rows: onlineStaffArrivals })}
+                    disabled={onlineStaffArrivals.length === 0}
                   >
                     Print list
                   </button>
                 </div>
                 {arrivals.length === 0
                   ? <p className="px-5 py-8 text-center text-sm text-slate-500">No one has checked in yet.</p>
-                  : renderArrivalTable('students', studentArrivals, studentArrivalPage, setStudentArrivalPage)}
+                  : renderArrivalTable('online staff', onlineStaffArrivals, onlineStaffArrivalPage, setOnlineStaffArrivalPage)}
+              </section>
+
+              <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm" aria-labelledby="admin-staff-arrivals-title">
+                <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 px-5 py-4 sm:px-6">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-violet-50 text-sm font-bold text-violet-700" aria-hidden="true">A</span>
+                  <h3 id="admin-staff-arrivals-title" className="font-bold text-slate-800">Admin staff arrivals</h3>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{adminStaffArrivals.length}</span>
+                  <button
+                    className="ml-auto rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                    type="button"
+                    onClick={() => setPrintArrivals({ label: 'Admin staff arrivals', rows: adminStaffArrivals })}
+                    disabled={adminStaffArrivals.length === 0}
+                  >
+                    Print list
+                  </button>
+                </div>
+                {arrivals.length === 0
+                  ? <p className="px-5 py-8 text-center text-sm text-slate-500">No one has checked in yet.</p>
+                  : renderArrivalTable('admin staff', adminStaffArrivals, adminStaffArrivalPage, setAdminStaffArrivalPage)}
               </section>
             </div>
           )}

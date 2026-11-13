@@ -7,7 +7,7 @@ A responsive web application for managing teacher attendance using React, TypeSc
 The app uses Supabase Auth and Postgres. The browser only uses the public anon key; database access is restricted by Row Level Security (RLS). Never put a `service_role` or secret key in a `VITE_` variable.
 
 1. Create a Supabase project.
-2. In the Supabase SQL Editor, run `001_initial_schema.sql`, `002_align_attendance_schema.sql`, `003_public_tutoring_checkins.sql`, `004_tutoring_session_checkout.sql`, `005_staffs_delivery_mode.sql`, and `006_staffs_office_geofence.sql` in order for a new project. If migrations 001–005 are already applied, run only `006_staffs_office_geofence.sql`. Do not rerun a migration that has already been applied.
+2. In the Supabase SQL Editor, run migrations `001` through `007` in order for a new project. If migrations 001–006 are already applied, run only `007_staff_attendee_types.sql`. This migration permanently deletes existing student attendance rows and prevents student records from being added again. Do not rerun a migration that has already been applied.
 3. In Supabase Authentication, create the administrator account. Copy its user UUID, then add it to the allow-list in the SQL Editor:
    ```sql
    insert into public.admins (user_id)
@@ -21,7 +21,7 @@ Do not send keys in chat. The anon/publishable key is intended for browser use; 
 
 ## Database Notes
 
-- Public tutoring links let teachers and students submit their name, email, and attendee type. The database creates the arrival timestamp; direct anonymous table writes are blocked.
+- Public attendance links let teachers, online staff, and admin staff submit their name and email. The database creates the arrival timestamp; direct anonymous table writes are blocked.
 - Admins create one QR link per session and choose `In-home`, `Online`, or `Staffs`. They can close or reopen a link and view all saved arrivals on the dashboard.
 - Staffs attendance is checked against an admin-captured office GPS point with a 100-meter radius. Set or update the point from the dashboard while physically at the office; the database enforces the distance on both check-in and check-out. Browser geolocation requires permission and HTTPS (localhost is allowed for development). QR links remain shareable, and GPS can be spoofed, so this is a deterrent to casual off-site scans, not proof of identity.
 - Each email has one attendance record per session. The first scan records arrival; scanning again records departure. An already checked-in attendee can still check out after the admin closes the link, while closed links reject new arrivals.
@@ -32,7 +32,7 @@ Do not send keys in chat. The anon/publishable key is intended for browser use; 
 
 ## Current Implementation Status
 
-Supabase client configuration, administrator sign-in, session QR creation, and the public teacher/student check-in and check-out page are implemented. The dashboard lists sessions and separate searchable teacher and student arrival tables with the configured timezone. Apply migrations 003–006 before using the updated attendance flow. Session QR codes can be displayed and printed from the dashboard. The browser camera scanner and CSV export are not implemented. Live attendance behavior still requires verification after the migrations are applied in Supabase.
+Supabase client configuration, administrator sign-in, session QR creation, and the public teacher/online staff/admin staff check-in and check-out page are implemented. The dashboard lists sessions and separate searchable arrival tables for each attendee type with the configured timezone. Apply migrations 003–007 before using the updated attendance flow. Session QR codes can be displayed and printed from the dashboard. The browser camera scanner and CSV export are not implemented. Live attendance behavior still requires verification after the migrations are applied in Supabase.
 
 ## Getting Started
 
